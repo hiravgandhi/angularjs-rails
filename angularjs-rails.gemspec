@@ -10,5 +10,5 @@ Gem::Specification.new do |s|
 	s.authors		= ["Hirav Gandhi"]
 	s.email			= 'hgandhi@alumni.stanford.edu'
 	s.files			= Dir["{lib,vendor}/**/*"] + ["MIT-LICENSE", "README.md"]
-	s.homepage    	= 'https://github.com/confuseddesi/angular-jsonrails/'
+	s.homepage    	= 'https://github.com/confuseddesi/angularjs-rails/'
 end
