@@ -19,7 +19,5 @@ If you desire to require (optional) Angular files, you may include them as well 
 
 ## Versioning
 
-angularjs-rails 1.0.1 == Angular.js 1.0.0
-
-Every attempt is made to mirror the currently shipping Angular.js version number wherever possible. For the first release, you will notice the version number is 1.0.1. Sadly, due to an
-issue with pushing the gem, I was required to augment the version number. Tracking of the Angular.JS version number will commense after a new version of Angular.js is released.
+Every attempt is made to mirror the currently shipping Angular.js version number wherever possible.
+The major, minor, and patch version numbers will always represent the Angular.js version.
