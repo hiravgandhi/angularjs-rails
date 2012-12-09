@@ -1,5 +1,5 @@
 /**
- * @license AngularJS v1.0.2
+ * @license AngularJS v1.0.3
  * (c) 2010-2012 Google, Inc. http://angularjs.org
  * License: MIT
  */
@@ -15,7 +15,7 @@ directive.dropdownToggle =
     return {
       restrict: 'C',
       link: function(scope, element, attrs) {
-        scope.$watch(function(){return $location.path();}, function() {
+        scope.$watch(function dropdownTogglePathWatch(){return $location.path();}, function dropdownTogglePathWatchAction() {
           close && close();
         });
 

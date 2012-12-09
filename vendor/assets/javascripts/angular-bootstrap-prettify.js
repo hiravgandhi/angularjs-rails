@@ -1,5 +1,5 @@
 /**
- * @license AngularJS v1.0.2
+ * @license AngularJS v1.0.3
  * (c) 2010-2012 Google, Inc. http://angularjs.org
  * License: MIT
  */
@@ -216,7 +216,7 @@ directive.ngEmbedApp = ['$templateCache', '$browser', '$rootScope', '$location',
           }, $delegate);
         }]);
         $provide.decorator('$rootScope', ['$delegate', function(embedRootScope) {
-          docsRootScope.$watch(function() {
+          docsRootScope.$watch(function embedRootScopeDigestWatch() {
             embedRootScope.$digest();
           });
           return embedRootScope;
