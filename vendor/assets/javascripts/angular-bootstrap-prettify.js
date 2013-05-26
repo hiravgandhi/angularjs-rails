@@ -1,5 +1,5 @@
 /**
- * @license AngularJS v1.0.6
+ * @license AngularJS v1.0.7
  * (c) 2010-2012 Google, Inc. http://angularjs.org
  * License: MIT
  */
@@ -185,7 +185,8 @@ directive.ngEvalJavascript = ['getEmbeddedTemplate', function(getEmbeddedTemplat
 }];
 
 
-directive.ngEmbedApp = ['$templateCache', '$browser', '$rootScope', '$location', function($templateCache, $browser, docsRootScope, $location) {
+directive.ngEmbedApp = ['$templateCache', '$browser', '$rootScope', '$location', '$sniffer',
+                function($templateCache,   $browser,  docsRootScope, $location,   $sniffer) {
   return {
     terminal: true,
     link: function(scope, element, attrs) {
@@ -195,6 +196,7 @@ directive.ngEmbedApp = ['$templateCache', '$browser', '$rootScope', '$location',
         $provide.value('$templateCache', $templateCache);
         $provide.value('$anchorScroll', angular.noop);
         $provide.value('$browser', $browser);
+        $provide.value('$sniffer', $sniffer);
         $provide.provider('$location', function() {
           this.$get = ['$rootScope', function($rootScope) {
             docsRootScope.$on('$locationChangeSuccess', function(event, oldUrl, newUrl) {
@@ -229,6 +231,7 @@ directive.ngEmbedApp = ['$templateCache', '$browser', '$rootScope', '$location',
           event.preventDefault();
         }
       });
+
       angular.bootstrap(element, modules);
     }
   };
@@ -936,7 +939,7 @@ var REGEXP_PRECEDER_PATTERN = '(?:^^\\.?|[+-]|[!=]=?=?|\\#|%=?|&&?=?|\\(|\\*=?|[
     * recognized.
     *
     * Shortcut is an optional string of characters, any of which, if the first
-    * character, gurantee that this pattern and only this pattern matches.
+    * character, guarantee that this pattern and only this pattern matches.
     *
     * @param {Array} shortcutStylePatterns patterns that always start with
     *   a known character.  Must have a shortcut string.
