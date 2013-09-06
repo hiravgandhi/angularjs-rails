@@ -1,5 +1,5 @@
 /**
- * @license AngularJS v1.2.0rc1
+ * @license AngularJS v1.2.0-rc.2
  * (c) 2010-2012 Google, Inc. http://angularjs.org
  * License: MIT
  */
@@ -9,8 +9,17 @@
  * @ngdoc overview
  * @name ngTouch
  * @description
- * Touch events and other mobile helpers.
- * Based on jQuery Mobile touch event handling (jquerymobile.com)
+ *
+ * # ngTouch
+ *
+ * `ngTouch` is the name of the optional Angular module that provides touch events and other
+ * helpers for touch-enabled devices.
+ * The implementation is based on jQuery Mobile touch event handling
+ * ([jquerymobile.com](http://jquerymobile.com/))
+ *
+ * {@installModule touch}
+ *
+ * See {@link ngTouch.$swipe `$swipe`} for usage.
  */
 
 // define ngTouch module
@@ -24,7 +33,9 @@ var ngTouch = angular.module('ngTouch', []);
      * The `$swipe` service is a service that abstracts the messier details of hold-and-drag swipe
      * behavior, to make implementing swipe-related directives more convenient.
      *
-     * It is used by the `ngSwipeLeft` and `ngSwipeRight` directives in `ngTouch`, and by
+     * Requires the {@link ngTouch `ngTouch`} module to be installed.
+     *
+     * `$swipe` is used by the `ngSwipeLeft` and `ngSwipeRight` directives in `ngTouch`, and by
      * `ngCarousel` in a separate component.
      *
      * # Usage
@@ -158,6 +169,8 @@ ngTouch.factory('$swipe', [function() {
  * devices. Most mobile browsers wait about 300ms after a tap-and-release before sending
  * the click event. This version handles them immediately, and then prevents the
  * following click event from propagating.
+ *
+ * Requires the {@link ngTouch `ngTouch`} module to be installed.
  *
  * This directive can fall back to using an ordinary click event, and so works on desktop
  * browsers as well as mobile.
@@ -428,6 +441,8 @@ ngTouch.directive('ngClick', ['$parse', '$timeout', '$rootElement',
  * A leftward swipe is a quick, right-to-left slide of the finger.
  * Though ngSwipeLeft is designed for touch-based devices, it will work with a mouse click and drag too.
  *
+ * Requires the {@link ngTouch `ngTouch`} module to be installed.
+ *
  * @element ANY
  * @param {expression} ngSwipeLeft {@link guide/expression Expression} to evaluate
  * upon left swipe. (Event object is available as `$event`)
@@ -454,6 +469,8 @@ ngTouch.directive('ngClick', ['$parse', '$timeout', '$rootElement',
  * Specify custom behavior when an element is swiped to the right on a touchscreen device.
  * A rightward swipe is a quick, left-to-right slide of the finger.
  * Though ngSwipeRight is designed for touch-based devices, it will work with a mouse click and drag too.
+ *
+ * Requires the {@link ngTouch `ngTouch`} module to be installed.
  *
  * @element ANY
  * @param {expression} ngSwipeRight {@link guide/expression Expression} to evaluate

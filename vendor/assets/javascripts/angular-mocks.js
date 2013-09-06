@@ -1,5 +1,5 @@
 /**
- * @license AngularJS v1.2.0rc1
+ * @license AngularJS v1.2.0-rc.2
  * (c) 2010-2012 Google, Inc. http://angularjs.org
  * License: MIT
  *
@@ -316,7 +316,7 @@ angular.mock.$LogProvider = function() {
   }
 
   this.debugEnabled = function(flag) {
-	  if (isDefined(flag)) {
+	  if (angular.isDefined(flag)) {
 		  debug = flag;
 		  return this;
 	  } else {
@@ -1851,9 +1851,11 @@ angular.mock.clearDataCache = function() {
    *
    * See {@link angular.mock.inject inject} for usage example
    *
-   * @param {...(string|Function)} fns any number of modules which are represented as string
+   * @param {...(string|Function|Object)} fns any number of modules which are represented as string
    *        aliases or as anonymous module initialization functions. The modules are used to
-   *        configure the injector. The 'ng' and 'ngMock' modules are automatically loaded.
+   *        configure the injector. The 'ng' and 'ngMock' modules are automatically loaded. If an 
+   *        object literal is passed they will be register as values in the module, the key being
+   *        the module name and the value being what is returned.
    */
   window.module = angular.mock.module = function() {
     var moduleFns = Array.prototype.slice.call(arguments, 0);
@@ -1865,7 +1867,15 @@ angular.mock.clearDataCache = function() {
       } else {
         var modules = currentSpec.$modules || (currentSpec.$modules = []);
         angular.forEach(moduleFns, function(module) {
-          modules.push(module);
+          if (angular.isObject(module) && !angular.isArray(module)) {
+            modules.push(function($provide) {
+              angular.forEach(module, function(value, key) {
+                $provide.value(key, value);
+              });
+            });
+          } else {
+            modules.push(module);
+          }
         });
       }
     }
