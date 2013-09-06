@@ -1,5 +1,5 @@
 /**
- * @license AngularJS v1.0.7
+ * @license AngularJS v1.0.8
  * (c) 2010-2012 Google, Inc. http://angularjs.org
  * License: MIT
  */
@@ -189,7 +189,9 @@ directive.ngEmbedApp = ['$templateCache', '$browser', '$rootScope', '$location',
   return {
     terminal: true,
     link: function(scope, element, attrs) {
-      var modules = [];
+      var modules = [],
+          embedRootScope,
+          deregisterEmbedRootScope;
 
       modules.push(['$provide', function($provide) {
         $provide.value('$templateCache', $templateCache);
@@ -215,10 +217,12 @@ directive.ngEmbedApp = ['$templateCache', '$browser', '$rootScope', '$location',
             }
           }, $delegate);
         }]);
-        $provide.decorator('$rootScope', ['$delegate', function(embedRootScope) {
-          docsRootScope.$watch(function embedRootScopeDigestWatch() {
+        $provide.decorator('$rootScope', ['$delegate', function($delegate) {
+          embedRootScope = $delegate;
+          deregisterEmbedRootScope = docsRootScope.$watch(function embedRootScopeDigestWatch() {
             embedRootScope.$digest();
           });
+
           return embedRootScope;
         }]);
       }]);
@@ -229,6 +233,12 @@ directive.ngEmbedApp = ['$templateCache', '$browser', '$rootScope', '$location',
           event.preventDefault();
         }
       });
+
+      element.bind('$destroy', function() {
+        deregisterEmbedRootScope();
+        embedRootScope.$destroy();
+      });
+
       angular.bootstrap(element, modules);
     }
   };
