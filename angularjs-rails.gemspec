@@ -11,4 +11,5 @@ Gem::Specification.new do |s|
 	s.email			= 'hgandhi@alumni.stanford.edu'
 	s.files			= Dir["{lib,vendor}/**/*"] + ["MIT-LICENSE", "README.md"]
 	s.homepage    	= 'https://github.com/hiravgandhi/angularjs-rails/'
+  s.license = 'MIT'
 end
