@@ -14,7 +14,7 @@ Add the following directive to your JavaScript manifest file (application.js):
 
 If you desire to require (optional) Angular files, you may include them as well in your JavaScript manifest file (application.js). For example:
 
-	//= require angular-bootstrap
+	//= require angular-animate
 	//= require angular-resource
 
 To use the 'unstable' branch, add the following directive to your JavaScript manifest file (application.js):
