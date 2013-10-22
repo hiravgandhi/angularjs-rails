@@ -15,4 +15,5 @@ Gem::Specification.new do |s|
 
   s.add_development_dependency  'rake'
   s.add_development_dependency  'versionomy'
+  s.add_development_dependency  'nokogiri'
 end
