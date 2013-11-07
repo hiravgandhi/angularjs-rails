@@ -53,13 +53,7 @@ module AngularJS::Rails
       content = version_file.read
       version_line = content.lines.find { |l| l =~ /^\s+#{version_constant_name}/ }
 
-      # We need to use a gemspec friendly version, so reformat angular version
-      # to match gem version format
-      new_version = Versionomy.create version.values_array,
-        current_gem_version.format,
-        current_gem_version.unparse_params
-
-      new_version_line = version_line.gsub(/"[^"]+"/, %Q{"#{new_version}"})
+      new_version_line = version_line.gsub(/"[^"]+"/, %Q{"#{version}"})
       version_file.open('w+') do |f|
         f.write content.gsub(version_line, new_version_line)
       end
