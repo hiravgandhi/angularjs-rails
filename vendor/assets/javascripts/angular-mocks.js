@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * @license AngularJS v1.2.0
+ * @license AngularJS v1.2.1
  * (c) 2010-2012 Google, Inc. http://angularjs.org
  * License: MIT
  *
@@ -1655,21 +1655,6 @@ angular.mock.$TimeoutDecorator = function($delegate, $browser) {
    */
   $delegate.flush = function(delay) {
     $browser.defer.flush(delay);
-  };
-
-  /**
-   * @ngdoc method
-   * @name ngMock.$timeout#flushNext
-   * @methodOf ngMock.$timeout
-   * @description
-   *
-   * Flushes the next timeout in the queue and compares it to the provided delay
-   *
-   * @param {number=} expectedDelay the delay value that will be asserted against the delay of the
-   *                  next timeout function
-   */
-  $delegate.flushNext = function(expectedDelay) {
-    $browser.defer.flushNext(expectedDelay);
   };
 
   /**
