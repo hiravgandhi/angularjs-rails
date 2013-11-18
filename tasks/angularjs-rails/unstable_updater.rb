@@ -7,7 +7,7 @@ module AngularJS::Rails
     end
 
     def current_gem_version
-      Versionomy.parse AngularJS::Rails::UNSTABLE_VERSION
+      Versionomy.parse(AngularJS::Rails::UNSTABLE_VERSION).convert(:rubygems)
     end
 
     def own_version(version)
