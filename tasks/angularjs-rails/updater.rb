@@ -53,7 +53,7 @@ module AngularJS::Rails
       content = version_file.read
       version_line = content.lines.find { |l| l =~ /^\s+#{version_constant_name}/ }
 
-      version = Versionomy.parse(version).convert(:rubygems)
+      # version_to_convert = Versionomy.parse(version).convert(:rubygems).to_s
 
       new_version_line = version_line.gsub(/"[^"]+"/, %Q{"#{version}"})
       version_file.open('w+') do |f|
