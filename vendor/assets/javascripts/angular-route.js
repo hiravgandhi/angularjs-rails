@@ -1,5 +1,5 @@
 /**
- * @license AngularJS v1.2.7
+ * @license AngularJS v1.2.9
  * (c) 2010-2014 Google, Inc. http://angularjs.org
  * License: MIT
  */
@@ -16,7 +16,7 @@
  *
  * ## Example
  * See {@link ngRoute.$route#example $route} for an example of configuring and using `ngRoute`.
- * 
+ *
  * {@installModule route}
  *
  * <div doc-module-components="ngRoute"></div>
@@ -33,7 +33,7 @@ var ngRouteModule = angular.module('ngRoute', ['ng']).
  * @description
  *
  * Used for configuring routes.
- * 
+ *
  * ## Example
  * See {@link ngRoute.$route#example $route} for an example of configuring and using `ngRoute`.
  *
@@ -669,6 +669,15 @@ ngRouteModule.directive('ngView', ngViewFillContentFactory);
  *
  * @scope
  * @priority 400
+ * @param {string=} onload Expression to evaluate whenever the view updates.
+ *
+ * @param {string=} autoscroll Whether `ngView` should call {@link ng.$anchorScroll
+ *                  $anchorScroll} to scroll the viewport after the view is updated.
+ *
+ *                  - If the attribute is not set, disable scrolling.
+ *                  - If the attribute is set without value, enable scrolling.
+ *                  - Otherwise enable scrolling only if the `autoscroll` attribute value evaluated
+ *                    as an expression yields a truthy value.
  * @example
     <example module="ngViewExample" deps="angular-route.js" animations="true">
       <file name="index.html">
