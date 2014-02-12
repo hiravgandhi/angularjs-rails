@@ -17,15 +17,6 @@ If you desire to require (optional) Angular files, you may include them as well 
 	//= require angular-animate
 	//= require angular-resource
 
-To use the 'unstable' branch, add the following directive to your JavaScript manifest file (application.js):
-
-    //= require unstable/angular
-
-And similarly, for optional Angular assets:
-
-    //= require unstable/angular-bootstrap
-    //= require unstable/angular-resource
-
 ## Versioning
 
 Every attempt is made to mirror the currently shipping Angular.js version number wherever possible.
