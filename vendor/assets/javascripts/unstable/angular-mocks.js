@@ -1,5 +1,5 @@
 /**
- * @license AngularJS v1.3.0-beta.13
+ * @license AngularJS v1.3.0-beta.17
  * (c) 2010-2014 Google, Inc. http://angularjs.org
  * License: MIT
  */
@@ -462,7 +462,7 @@ angular.mock.$IntervalProvider = function() {
           iteration = 0,
           skipApply = (angular.isDefined(invokeApply) && !invokeApply);
 
-      count = (angular.isDefined(count)) ? count : 0,
+      count = (angular.isDefined(count)) ? count : 0;
       promise.then(null, null, fn);
 
       promise.$$intervalId = nextRepeatId;
@@ -798,7 +798,7 @@ angular.mock.animate = angular.module('ngAnimateMock', ['ng'])
             element : arguments[0],
             args : arguments
           });
-          $delegate[method].apply($delegate, arguments);
+          return $delegate[method].apply($delegate, arguments);
         };
       });
 
@@ -1739,6 +1739,7 @@ angular.mock.$RootElementProvider = function() {
 /**
  * @ngdoc module
  * @name ngMock
+ * @packageName angular-mocks
  * @description
  *
  * # ngMock
@@ -1768,6 +1769,7 @@ angular.module('ngMock', ['ng']).provider({
  * @ngdoc module
  * @name ngMockE2E
  * @module ngMockE2E
+ * @packageName angular-mocks
  * @description
  *
  * The `ngMockE2E` is an angular module which contains mocks suitable for end-to-end testing.
@@ -1989,6 +1991,12 @@ if(window.jasmine || window.mocha) {
 
   (window.afterEach || window.teardown)(function() {
     var injector = currentSpec.$injector;
+
+    angular.forEach(currentSpec.$modules, function(module) {
+      if (module && module.$$hashKey) {
+        module.$$hashKey = undefined;
+      }
+    });
 
     currentSpec.$injector = null;
     currentSpec.$modules = null;
