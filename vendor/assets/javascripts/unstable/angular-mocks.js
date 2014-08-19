@@ -1,5 +1,5 @@
 /**
- * @license AngularJS v1.3.0-beta.17
+ * @license AngularJS v1.3.0-beta.18
  * (c) 2010-2014 Google, Inc. http://angularjs.org
  * License: MIT
  */
@@ -1008,13 +1008,14 @@ angular.mock.dump = function(object) {
   ```js
     // testing controller
     describe('MyController', function() {
-       var $httpBackend, $rootScope, createController;
+       var $httpBackend, $rootScope, createController, authRequestHandler;
 
        beforeEach(inject(function($injector) {
          // Set up the mock http service responses
          $httpBackend = $injector.get('$httpBackend');
          // backend definition common for all tests
-         $httpBackend.when('GET', '/auth.py').respond({userId: 'userX'}, {'A-Token': 'xxx'});
+         authRequestHandler = $httpBackend.when('GET', '/auth.py')
+                                .respond({userId: 'userX'}, {'A-Token': 'xxx'});
 
          // Get hold of a scope (i.e. the root scope)
          $rootScope = $injector.get('$rootScope');
@@ -1037,6 +1038,18 @@ angular.mock.dump = function(object) {
          $httpBackend.expectGET('/auth.py');
          var controller = createController();
          $httpBackend.flush();
+       });
+
+
+       it('should fail authentication', function() {
+
+         // Notice how you can change the response even after it was set
+         authRequestHandler.respond(401, '');
+
+         $httpBackend.expectGET('/auth.py');
+         var controller = createController();
+         $httpBackend.flush();
+         expect($rootScope.status).toBe('Failed...');
        });
 
 
@@ -1194,26 +1207,32 @@ function createHttpBackendMock($rootScope, $delegate, $browser) {
    * @param {(Object|function(Object))=} headers HTTP headers or function that receives http header
    *   object and returns true if the headers match the current definition.
    * @returns {requestHandler} Returns an object with `respond` method that controls how a matched
-   *   request is handled.
+   *   request is handled. You can save this object for later use and invoke `respond` again in
+   *   order to change how a matched request is handled.
    *
    *  - respond –
    *      `{function([status,] data[, headers, statusText])
    *      | function(function(method, url, data, headers)}`
    *    – The respond method takes a set of static data to be returned or a function that can
    *    return an array containing response status (number), response data (string), response
-   *    headers (Object), and the text for the status (string).
+   *    headers (Object), and the text for the status (string). The respond method returns the
+   *    `requestHandler` object for possible overrides.
    */
   $httpBackend.when = function(method, url, data, headers) {
     var definition = new MockHttpExpectation(method, url, data, headers),
         chain = {
           respond: function(status, data, headers, statusText) {
+            definition.passThrough = undefined;
             definition.response = createResponse(status, data, headers, statusText);
+            return chain;
           }
         };
 
     if ($browser) {
       chain.passThrough = function() {
+        definition.response = undefined;
         definition.passThrough = true;
+        return chain;
       };
     }
 
@@ -1231,7 +1250,8 @@ function createHttpBackendMock($rootScope, $delegate, $browser) {
    *   and returns true if the url match the current definition.
    * @param {(Object|function(Object))=} headers HTTP headers.
    * @returns {requestHandler} Returns an object with `respond` method that control how a matched
-   * request is handled.
+   * request is handled. You can save this object for later use and invoke `respond` again in
+   * order to change how a matched request is handled.
    */
 
   /**
@@ -1244,7 +1264,8 @@ function createHttpBackendMock($rootScope, $delegate, $browser) {
    *   and returns true if the url match the current definition.
    * @param {(Object|function(Object))=} headers HTTP headers.
    * @returns {requestHandler} Returns an object with `respond` method that control how a matched
-   * request is handled.
+   * request is handled. You can save this object for later use and invoke `respond` again in
+   * order to change how a matched request is handled.
    */
 
   /**
@@ -1257,7 +1278,8 @@ function createHttpBackendMock($rootScope, $delegate, $browser) {
    *   and returns true if the url match the current definition.
    * @param {(Object|function(Object))=} headers HTTP headers.
    * @returns {requestHandler} Returns an object with `respond` method that control how a matched
-   * request is handled.
+   * request is handled. You can save this object for later use and invoke `respond` again in
+   * order to change how a matched request is handled.
    */
 
   /**
@@ -1272,7 +1294,8 @@ function createHttpBackendMock($rootScope, $delegate, $browser) {
    *   data string and returns true if the data is as expected.
    * @param {(Object|function(Object))=} headers HTTP headers.
    * @returns {requestHandler} Returns an object with `respond` method that control how a matched
-   * request is handled.
+   * request is handled. You can save this object for later use and invoke `respond` again in
+   * order to change how a matched request is handled.
    */
 
   /**
@@ -1287,7 +1310,8 @@ function createHttpBackendMock($rootScope, $delegate, $browser) {
    *   data string and returns true if the data is as expected.
    * @param {(Object|function(Object))=} headers HTTP headers.
    * @returns {requestHandler} Returns an object with `respond` method that control how a matched
-   * request is handled.
+   * request is handled. You can save this object for later use and invoke `respond` again in
+   * order to change how a matched request is handled.
    */
 
   /**
@@ -1299,7 +1323,8 @@ function createHttpBackendMock($rootScope, $delegate, $browser) {
    * @param {string|RegExp|function(string)} url HTTP url or function that receives the url
    *   and returns true if the url match the current definition.
    * @returns {requestHandler} Returns an object with `respond` method that control how a matched
-   * request is handled.
+   * request is handled. You can save this object for later use and invoke `respond` again in
+   * order to change how a matched request is handled.
    */
   createShortMethods('when');
 
@@ -1319,23 +1344,28 @@ function createHttpBackendMock($rootScope, $delegate, $browser) {
    * @param {(Object|function(Object))=} headers HTTP headers or function that receives http header
    *   object and returns true if the headers match the current expectation.
    * @returns {requestHandler} Returns an object with `respond` method that control how a matched
-   *  request is handled.
+   *  request is handled. You can save this object for later use and invoke `respond` again in
+   *  order to change how a matched request is handled.
    *
    *  - respond –
    *    `{function([status,] data[, headers, statusText])
    *    | function(function(method, url, data, headers)}`
    *    – The respond method takes a set of static data to be returned or a function that can
    *    return an array containing response status (number), response data (string), response
-   *    headers (Object), and the text for the status (string).
+   *    headers (Object), and the text for the status (string). The respond method returns the
+   *    `requestHandler` object for possible overrides.
    */
   $httpBackend.expect = function(method, url, data, headers) {
-    var expectation = new MockHttpExpectation(method, url, data, headers);
+    var expectation = new MockHttpExpectation(method, url, data, headers),
+        chain = {
+          respond: function (status, data, headers, statusText) {
+            expectation.response = createResponse(status, data, headers, statusText);
+            return chain;
+          }
+        };
+
     expectations.push(expectation);
-    return {
-      respond: function (status, data, headers, statusText) {
-        expectation.response = createResponse(status, data, headers, statusText);
-      }
-    };
+    return chain;
   };
 
 
@@ -1349,7 +1379,8 @@ function createHttpBackendMock($rootScope, $delegate, $browser) {
    *   and returns true if the url match the current definition.
    * @param {Object=} headers HTTP headers.
    * @returns {requestHandler} Returns an object with `respond` method that control how a matched
-   * request is handled. See #expect for more info.
+   * request is handled. You can save this object for later use and invoke `respond` again in
+   * order to change how a matched request is handled. See #expect for more info.
    */
 
   /**
@@ -1362,7 +1393,8 @@ function createHttpBackendMock($rootScope, $delegate, $browser) {
    *   and returns true if the url match the current definition.
    * @param {Object=} headers HTTP headers.
    * @returns {requestHandler} Returns an object with `respond` method that control how a matched
-   *   request is handled.
+   *   request is handled. You can save this object for later use and invoke `respond` again in
+   *   order to change how a matched request is handled.
    */
 
   /**
@@ -1375,7 +1407,8 @@ function createHttpBackendMock($rootScope, $delegate, $browser) {
    *   and returns true if the url match the current definition.
    * @param {Object=} headers HTTP headers.
    * @returns {requestHandler} Returns an object with `respond` method that control how a matched
-   *   request is handled.
+   *   request is handled. You can save this object for later use and invoke `respond` again in
+   *   order to change how a matched request is handled.
    */
 
   /**
@@ -1391,7 +1424,8 @@ function createHttpBackendMock($rootScope, $delegate, $browser) {
    *  is in JSON format.
    * @param {Object=} headers HTTP headers.
    * @returns {requestHandler} Returns an object with `respond` method that control how a matched
-   *   request is handled.
+   *   request is handled. You can save this object for later use and invoke `respond` again in
+   *   order to change how a matched request is handled.
    */
 
   /**
@@ -1407,7 +1441,8 @@ function createHttpBackendMock($rootScope, $delegate, $browser) {
    *  is in JSON format.
    * @param {Object=} headers HTTP headers.
    * @returns {requestHandler} Returns an object with `respond` method that control how a matched
-   *   request is handled.
+   *   request is handled. You can save this object for later use and invoke `respond` again in
+   *   order to change how a matched request is handled.
    */
 
   /**
@@ -1423,7 +1458,8 @@ function createHttpBackendMock($rootScope, $delegate, $browser) {
    *  is in JSON format.
    * @param {Object=} headers HTTP headers.
    * @returns {requestHandler} Returns an object with `respond` method that control how a matched
-   *   request is handled.
+   *   request is handled. You can save this object for later use and invoke `respond` again in
+   *   order to change how a matched request is handled.
    */
 
   /**
@@ -1435,7 +1471,8 @@ function createHttpBackendMock($rootScope, $delegate, $browser) {
    * @param {string|RegExp|function(string)} url HTTP url or function that receives the url
    *   and returns true if the url match the current definition.
    * @returns {requestHandler} Returns an object with `respond` method that control how a matched
-   *   request is handled.
+   *   request is handled. You can save this object for later use and invoke `respond` again in
+   *   order to change how a matched request is handled.
    */
   createShortMethods('expect');
 
@@ -1803,7 +1840,7 @@ angular.module('ngMockE2E', ['ng']).config(['$provide', function($provide) {
  * use the `passThrough` request handler of `when` instead of `respond`.
  *
  * Additionally, we don't want to manually have to flush mocked out requests like we do during unit
- * testing. For this reason the e2e $httpBackend automatically flushes mocked out requests
+ * testing. For this reason the e2e $httpBackend flushes mocked out requests
  * automatically, closely simulating the behavior of the XMLHttpRequest object.
  *
  * To setup the application to run with this http backend, you have to create a module that depends
@@ -1845,7 +1882,8 @@ angular.module('ngMockE2E', ['ng']).config(['$provide', function($provide) {
  * @param {(Object|function(Object))=} headers HTTP headers or function that receives http header
  *   object and returns true if the headers match the current definition.
  * @returns {requestHandler} Returns an object with `respond` and `passThrough` methods that
- *   control how a matched request is handled.
+ *   control how a matched request is handled. You can save this object for later use and invoke
+ *   `respond` or `passThrough` again in order to change how a matched request is handled.
  *
  *  - respond –
  *    `{function([status,] data[, headers, statusText])
@@ -1856,6 +1894,7 @@ angular.module('ngMockE2E', ['ng']).config(['$provide', function($provide) {
  *  - passThrough – `{function()}` – Any request matching a backend definition with
  *    `passThrough` handler will be passed through to the real backend (an XHR request will be made
  *    to the server.)
+ *  - Both methods return the `requestHandler` object for possible overrides.
  */
 
 /**
@@ -1869,7 +1908,8 @@ angular.module('ngMockE2E', ['ng']).config(['$provide', function($provide) {
  *   and returns true if the url match the current definition.
  * @param {(Object|function(Object))=} headers HTTP headers.
  * @returns {requestHandler} Returns an object with `respond` and `passThrough` methods that
- *   control how a matched request is handled.
+ *   control how a matched request is handled. You can save this object for later use and invoke
+ *   `respond` or `passThrough` again in order to change how a matched request is handled.
  */
 
 /**
@@ -1883,7 +1923,8 @@ angular.module('ngMockE2E', ['ng']).config(['$provide', function($provide) {
  *   and returns true if the url match the current definition.
  * @param {(Object|function(Object))=} headers HTTP headers.
  * @returns {requestHandler} Returns an object with `respond` and `passThrough` methods that
- *   control how a matched request is handled.
+ *   control how a matched request is handled. You can save this object for later use and invoke
+ *   `respond` or `passThrough` again in order to change how a matched request is handled.
  */
 
 /**
@@ -1897,7 +1938,8 @@ angular.module('ngMockE2E', ['ng']).config(['$provide', function($provide) {
  *   and returns true if the url match the current definition.
  * @param {(Object|function(Object))=} headers HTTP headers.
  * @returns {requestHandler} Returns an object with `respond` and `passThrough` methods that
- *   control how a matched request is handled.
+ *   control how a matched request is handled. You can save this object for later use and invoke
+ *   `respond` or `passThrough` again in order to change how a matched request is handled.
  */
 
 /**
@@ -1912,7 +1954,8 @@ angular.module('ngMockE2E', ['ng']).config(['$provide', function($provide) {
  * @param {(string|RegExp)=} data HTTP request body.
  * @param {(Object|function(Object))=} headers HTTP headers.
  * @returns {requestHandler} Returns an object with `respond` and `passThrough` methods that
- *   control how a matched request is handled.
+ *   control how a matched request is handled. You can save this object for later use and invoke
+ *   `respond` or `passThrough` again in order to change how a matched request is handled.
  */
 
 /**
@@ -1927,7 +1970,8 @@ angular.module('ngMockE2E', ['ng']).config(['$provide', function($provide) {
  * @param {(string|RegExp)=} data HTTP request body.
  * @param {(Object|function(Object))=} headers HTTP headers.
  * @returns {requestHandler} Returns an object with `respond` and `passThrough` methods that
- *   control how a matched request is handled.
+ *   control how a matched request is handled. You can save this object for later use and invoke
+ *   `respond` or `passThrough` again in order to change how a matched request is handled.
  */
 
 /**
@@ -1942,7 +1986,8 @@ angular.module('ngMockE2E', ['ng']).config(['$provide', function($provide) {
  * @param {(string|RegExp)=} data HTTP request body.
  * @param {(Object|function(Object))=} headers HTTP headers.
  * @returns {requestHandler} Returns an object with `respond` and `passThrough` methods that
- *   control how a matched request is handled.
+ *   control how a matched request is handled. You can save this object for later use and invoke
+ *   `respond` or `passThrough` again in order to change how a matched request is handled.
  */
 
 /**
@@ -1955,7 +2000,8 @@ angular.module('ngMockE2E', ['ng']).config(['$provide', function($provide) {
  * @param {string|RegExp|function(string)} url HTTP url or function that receives the url
  *   and returns true if the url match the current definition.
  * @returns {requestHandler} Returns an object with `respond` and `passThrough` methods that
- *   control how a matched request is handled.
+ *   control how a matched request is handled. You can save this object for later use and invoke
+ *   `respond` or `passThrough` again in order to change how a matched request is handled.
  */
 angular.mock.e2e = {};
 angular.mock.e2e.$httpBackendDecorator =
@@ -1963,6 +2009,13 @@ angular.mock.e2e.$httpBackendDecorator =
 
 
 angular.mock.clearDataCache = function() {
+  // jQuery 2.x doesn't expose data attached to elements. We could use jQuery.cleanData
+  // to clean up after elements but we'd first need to know which elements to clean up after.
+  // Skip it then.
+  if (window.jQuery) {
+    return;
+  }
+
   var key,
       cache = angular.element.cache;
 

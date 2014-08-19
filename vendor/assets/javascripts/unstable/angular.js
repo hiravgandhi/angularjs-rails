@@ -1,5 +1,5 @@
 /**
- * @license AngularJS v1.3.0-beta.17
+ * @license AngularJS v1.3.0-beta.18
  * (c) 2010-2014 Google, Inc. http://angularjs.org
  * License: MIT
  */
@@ -68,7 +68,7 @@ function minErr(module) {
       return match;
     });
 
-    message = message + '\nhttp://errors.angularjs.org/1.3.0-beta.17/' +
+    message = message + '\nhttp://errors.angularjs.org/1.3.0-beta.18/' +
       (module ? module + '/' : '') + code;
     for (i = 2; i < arguments.length; i++) {
       message = message + (i == 2 ? '?' : '&') + 'p' + (i-2) + '=' +
@@ -1255,6 +1255,7 @@ function encodeUriQuery(val, pctEncodeSpaces) {
              replace(/%3A/gi, ':').
              replace(/%24/g, '$').
              replace(/%2C/gi, ',').
+             replace(/%3B/gi, ';').
              replace(/%20/g, (pctEncodeSpaces ? '%20' : '+'));
 }
 
@@ -1537,7 +1538,9 @@ function bindJQuery() {
   // bind to jQuery if present;
   jQuery = window.jQuery;
   // Use jQuery if it exists with proper functionality, otherwise default to us.
-  // Angular 1.2+ requires jQuery 1.7.1+ for on()/off() support.
+  // Angular 1.2+ requires jQuery 1.7+ for on()/off() support.
+  // Angular 1.3+ technically requires at least jQuery 2.1+ but it may work with older
+  // versions. It will not work for sure with jQuery <1.7, though.
   if (jQuery && jQuery.fn.on) {
     jqLite = jQuery;
     extend(jQuery.fn, {
@@ -2067,11 +2070,11 @@ function setupModuleLoader(window) {
  * - `codeName` – `{string}` – Code name of the release, such as "jiggling-armfat".
  */
 var version = {
-  full: '1.3.0-beta.17',    // all of these placeholder strings will be replaced by grunt's
+  full: '1.3.0-beta.18',    // all of these placeholder strings will be replaced by grunt's
   major: 1,    // package task
   minor: 3,
   dot: 0,
-  codeName: 'turing-autocompletion'
+  codeName: 'spontaneous-combustion'
 };
 
 
@@ -2084,11 +2087,11 @@ function publishExternalAPI(angular){
     'element': jqLite,
     'forEach': forEach,
     'injector': createInjector,
-    'noop':noop,
-    'bind':bind,
+    'noop': noop,
+    'bind': bind,
     'toJson': toJson,
     'fromJson': fromJson,
-    'identity':identity,
+    'identity': identity,
     'isUndefined': isUndefined,
     'isDefined': isDefined,
     'isString': isString,
@@ -2451,7 +2454,7 @@ function jqLiteDealoc(element, onlyDescendants){
 
   if (element.childNodes && element.childNodes.length) {
     // we use querySelectorAll because documentFragments don't have getElementsByTagName
-    var descendants = element.getElementsByTagName ? element.getElementsByTagName('*') :
+    var descendants = element.getElementsByTagName ? sliceArgs(element.getElementsByTagName('*')) :
                     element.querySelectorAll ? element.querySelectorAll('*') : [];
     for (var i = 0, l = descendants.length; i < l; i++) {
       jqLiteRemoveData(descendants[i]);
@@ -3150,26 +3153,37 @@ forEach({
 
   clone: jqLiteClone,
 
-  triggerHandler: function(element, eventName, eventData) {
-    // Copy event handlers in case event handlers array is modified during execution.
-    var eventFns = (jqLiteExpandoStore(element, 'events') || {})[eventName],
-        eventFnsCopy = shallowCopy(eventFns || []);
+  triggerHandler: function(element, event, extraParameters) {
 
-    eventData = eventData || [];
+    var dummyEvent, eventFnsCopy, handlerArgs;
+    var eventName = event.type || event;
+    var eventFns = (jqLiteExpandoStore(element, 'events') || {})[eventName];
 
-    var event = [{
-      preventDefault: function() {
-        this.defaultPrevented = true;
-      },
-      isDefaultPrevented: function() {
-        return this.defaultPrevented === true;
-      },
-      stopPropagation: noop
-    }];
+    if (eventFns) {
 
-    forEach(eventFnsCopy, function(fn) {
-      fn.apply(element, event.concat(eventData));
-    });
+      // Create a dummy event to pass to the handlers
+      dummyEvent = {
+        preventDefault: function() { this.defaultPrevented = true; },
+        isDefaultPrevented: function() { return this.defaultPrevented === true; },
+        stopPropagation: noop,
+        type: eventName,
+        target: element
+      };
+
+      // If a custom event was provided then extend our dummy event with it
+      if (event.type) {
+        dummyEvent = extend(dummyEvent, event);
+      }
+
+      // Copy event handlers in case event handlers array is modified during execution.
+      eventFnsCopy = shallowCopy(eventFns);
+      handlerArgs = extraParameters ? [dummyEvent].concat(extraParameters) : [dummyEvent];
+
+      forEach(eventFnsCopy, function(fn) {
+        fn.apply(element, handlerArgs);
+      });
+
+    }
   }
 }, function(fn, name){
   /**
@@ -5345,7 +5359,7 @@ function $TemplateCacheProvider() {
  * The directive definition object provides instructions to the {@link ng.$compile
  * compiler}. The attributes are:
  *
- * ### `multiElement`
+ * #### `multiElement`
  * When this property is set to true, the HTML compiler will collect DOM nodes between
  * nodes with the attributes `directive-name-start` and `directive-name-end`, and group them
  * together as the directive elements. It is recomended that this feature be used on directives
@@ -5468,7 +5482,7 @@ function $TemplateCacheProvider() {
  *
  * #### `template`
  * HTML markup that may:
- * * Replace the contents of the directive's element (defualt).
+ * * Replace the contents of the directive's element (default).
  * * Replace the directive's element itself (if `replace` is true - DEPRECATED).
  * * Wrap the contents of the directive's element (if `transclude` is true).
  *
@@ -6741,7 +6755,7 @@ function $CompileProvider($provide, $$sanitizeUriProvider) {
                 if (parentGet.literal) {
                   compare = equals;
                 } else {
-                  compare = function(a,b) { return a === b; };
+                  compare = function(a,b) { return a === b || (a !== a && b !== b); };
                 }
                 parentSet = parentGet.assign || function() {
                   // reset the change, or we will throw this exception on every $digest
@@ -7265,7 +7279,25 @@ function $CompileProvider($provide, $$sanitizeUriProvider) {
       }
       var fragment = document.createDocumentFragment();
       fragment.appendChild(firstElementToRemove);
-      newNode[jqLite.expando] = firstElementToRemove[jqLite.expando];
+
+      // Copy over user data (that includes Angular's $scope etc.). Don't copy private
+      // data here because there's no public interface in jQuery to do that and copying over
+      // event listeners (which is the main use of private data) wouldn't work anyway.
+      jqLite(newNode).data(jqLite(firstElementToRemove).data());
+
+      // Remove data of the replaced element. We cannot just call .remove()
+      // on the element it since that would deallocate scope that is needed
+      // for the new node. Instead, remove the data "manually".
+      if (!jQuery) {
+        delete jqLite.cache[firstElementToRemove[jqLite.expando]];
+      } else {
+        // jQuery 2.x doesn't expose the data storage. Use jQuery.cleanData to clean up after the replaced
+        // element. Note that we need to use the original method here and not the one monkey-patched by Angular
+        // since the patched method emits the $destroy event causing the scope to be trashed and we do need
+        // the very same scope to work with the new element.
+        jQuery.cleanData.$$original([firstElementToRemove]);
+      }
+
       for (var k = 1, kk = elementsToRemove.length; k < kk; k++) {
         var element = elementsToRemove[k];
         jqLite(element).remove(); // must do this way to clean up expando
@@ -7793,6 +7825,7 @@ function $HttpProvider() {
      * - {@link ng.$http#put $http.put}
      * - {@link ng.$http#delete $http.delete}
      * - {@link ng.$http#jsonp $http.jsonp}
+     * - {@link ng.$http#patch $http.patch}
      *
      *
      * # Setting HTTP Headers
@@ -8049,7 +8082,7 @@ function $HttpProvider() {
      *    - **timeout** – `{number|Promise}` – timeout in milliseconds, or {@link ng.$q promise}
      *      that should abort the request when resolved.
      *    - **withCredentials** - `{boolean}` - whether to set the `withCredentials` flag on the
-     *      XHR object. See [requests with credentials]https://developer.mozilla.org/en/http_access_control#section_5
+     *      XHR object. See [requests with credentials](https://developer.mozilla.org/docs/Web/HTTP/Access_control_CORS#Requests_with_credentials)
      *      for more information.
      *    - **responseType** - `{string}` - see
      *      [requestType](https://developer.mozilla.org/en-US/docs/DOM/XMLHttpRequest#responseType).
@@ -8431,7 +8464,8 @@ function $HttpProvider() {
       promise.then(removePendingReq, removePendingReq);
 
 
-      if ((config.cache || defaults.cache) && config.cache !== false && config.method == 'GET') {
+      if ((config.cache || defaults.cache) && config.cache !== false &&
+          (config.method === 'GET' || config.method === 'JSONP')) {
         cache = isObject(config.cache) ? config.cache
               : isObject(defaults.cache) ? defaults.cache
               : defaultCache;
@@ -10002,6 +10036,8 @@ function $LocationProvider(){
     $location = new LocationMode(appBase, '#' + hashPrefix);
     $location.$$parse($location.$$rewrite(initialUrl));
 
+    var IGNORE_URI_REGEXP = /^\s*(javascript|mailto):/i;
+
     $rootElement.on('click', function(event) {
       // TODO(vojta): rewrite link when opening in new tab/window (in legacy browser)
       // currently we open nice url link and redirect then
@@ -10023,6 +10059,9 @@ function $LocationProvider(){
         // an animation.
         absHref = urlResolve(absHref.animVal).href;
       }
+
+      // Ignore when url is started with javascript: or mailto:
+      if (IGNORE_URI_REGEXP.test(absHref)) return;
 
       // Make relative links work in HTML5 mode for legacy browsers (or at least IE8 & 9)
       // The href should be a regular url e.g. /link/somewhere or link/somewhere or ../somewhere or
@@ -10878,9 +10917,9 @@ Parser.prototype = {
     var middle;
     var token;
     if ((token = this.expect('?'))) {
-      middle = this.ternary();
+      middle = this.assignment();
       if ((token = this.expect(':'))) {
-        return this.ternaryFn(left, middle, this.ternary());
+        return this.ternaryFn(left, middle, this.assignment());
       } else {
         this.throwError('expected :', token);
       }
@@ -10968,7 +11007,9 @@ Parser.prototype = {
       return getter(self || object(scope, locals));
     }, {
       assign: function(scope, value, locals) {
-        return setter(object(scope, locals), field, value, parser.text);
+        var o = object(scope, locals);
+        if (!o) object.assign(scope, o = {});
+        return setter(o, field, value, parser.text);
       }
     });
   },
@@ -10990,10 +11031,11 @@ Parser.prototype = {
       return v;
     }, {
       assign: function(self, value, locals) {
-        var key = indexFn(self, locals);
+        var key = ensureSafeMemberName(indexFn(self, locals), parser.text);
         // prevent overwriting of Function.constructor which would break ensureSafeObject check
-        var safe = ensureSafeObject(obj(self, locals), parser.text);
-        return safe[key] = value;
+        var o = ensureSafeObject(obj(self, locals), parser.text);
+        if (!o) obj.assign(self, o = {});
+        return o[key] = value;
       }
     });
   },
@@ -11298,8 +11340,12 @@ function $ParseProvider() {
             var parser = new Parser(lexer, $filter, $parseOptions);
             parsedExpression = parser.parse(exp);
 
-            if (parsedExpression.constant) parsedExpression.$$watchDelegate = constantWatch;
-            else if (oneTime) parsedExpression.$$watchDelegate = oneTimeWatch;
+            if (parsedExpression.constant) {
+              parsedExpression.$$watchDelegate = constantWatch;
+            } else if (oneTime) {
+              parsedExpression.$$watchDelegate = parsedExpression.literal ?
+                oneTimeLiteralWatch : oneTimeWatch;
+            }
 
             if (cacheKey !== 'hasOwnProperty') {
               // Only cache the value if it's not going to mess up the cache object
@@ -11334,6 +11380,30 @@ function $ParseProvider() {
           });
         }
       }, objectEquality, deregisterNotifier);
+    }
+
+    function oneTimeLiteralWatch(scope, listener, objectEquality, deregisterNotifier, parsedExpression) {
+      var unwatch;
+      return unwatch = scope.$watch(function oneTimeWatch(scope) {
+        return parsedExpression(scope);
+      }, function oneTimeListener(value, old, scope) {
+        if (isFunction(listener)) {
+          listener.call(this, value, old, scope);
+        }
+        if (isAllDefined(value)) {
+          scope.$$postDigest(function () {
+            if(isAllDefined(value)) unwatch();
+          });
+        }
+      }, objectEquality);
+
+      function isAllDefined(value) {
+        var allDefined = true;
+        forEach(value, function (val) {
+          if (!isDefined(val)) allDefined = false;
+        });
+        return allDefined;
+      }
     }
 
     function constantWatch(scope, listener, objectEquality, deregisterNotifier, parsedExpression) {
@@ -11613,143 +11683,122 @@ function qFactory(nextTick, exceptionHandler) {
    * @returns {Deferred} Returns a new instance of deferred.
    */
   var defer = function() {
-    var pending = [],
-        value, deferred;
+    return new Deferred();
+  };
 
-    deferred = {
+  function Promise () {
+    this.$$pending = [];
+  }
 
-      resolve: function(val) {
-        if (pending) {
-          var callbacks = pending;
-          pending = undefined;
-          value = ref(val);
+  Promise.prototype = {
+    then: function(callback, errback, progressback) {
+      var result = new Deferred();
 
-          if (callbacks.length) {
-            nextTick(function() {
-              var callback;
-              for (var i = 0, ii = callbacks.length; i < ii; i++) {
-                callback = callbacks[i];
-                value.then(callback[0], callback[1], callback[2]);
-              }
-            });
-          }
+      var wrappedCallback = function(value) {
+        try {
+          result.resolve((isFunction(callback) ? callback : defaultCallback)(value));
+        } catch(e) {
+          result.reject(e);
+          exceptionHandler(e);
         }
-      },
+      };
 
-
-      reject: function(reason) {
-        deferred.resolve(createInternalRejectedPromise(reason));
-      },
-
-
-      notify: function(progress) {
-        if (pending) {
-          var callbacks = pending;
-
-          if (pending.length) {
-            nextTick(function() {
-              var callback;
-              for (var i = 0, ii = callbacks.length; i < ii; i++) {
-                callback = callbacks[i];
-                callback[2](progress);
-              }
-            });
-          }
+      var wrappedErrback = function(reason) {
+        try {
+          result.resolve((isFunction(errback) ? errback : defaultErrback)(reason));
+        } catch(e) {
+          result.reject(e);
+          exceptionHandler(e);
         }
-      },
+      };
 
+      var wrappedProgressback = function(progress) {
+        try {
+          result.notify((isFunction(progressback) ? progressback : defaultCallback)(progress));
+        } catch(e) {
+          exceptionHandler(e);
+        }
+      };
 
-      promise: {
-        then: function(callback, errback, progressback) {
-          var result = defer();
+      if (this.$$pending) {
+        this.$$pending.push([wrappedCallback, wrappedErrback, wrappedProgressback]);
+      } else {
+        this.$$value.then(wrappedCallback, wrappedErrback, wrappedProgressback);
+      }
 
-          var wrappedCallback = function(value) {
-            try {
-              result.resolve((isFunction(callback) ? callback : defaultCallback)(value));
-            } catch(e) {
-              result.reject(e);
-              exceptionHandler(e);
+      return result.promise;
+    },
+
+    "catch": function(callback) {
+      return this.then(null, callback);
+    },
+    "finally": function(callback) {
+      return this.then(function(value) {
+        return handleCallback(value, true, callback);
+      }, function(error) {
+        return handleCallback(error, false, callback);
+      });
+    }
+  };
+
+  //Faster, more basic than angular.bind http://jsperf.com/angular-bind-vs-custom-vs-native
+  function simpleBind(context, fn) {
+    return function(value) {
+      fn.call(context, value);
+    };
+  }
+
+  function Deferred () {
+    this.promise = new Promise();
+    //Necessary to support unbound execution :/
+    this.resolve = simpleBind(this, this.resolve);
+    this.reject = simpleBind(this, this.reject);
+    this.notify = simpleBind(this, this.notify);
+  }
+
+  Deferred.prototype = {
+    resolve: function(val) {
+      if (this.promise.$$pending) {
+        var callbacks = this.promise.$$pending;
+        this.promise.$$pending = undefined;
+        this.promise.$$value = ref(val);
+
+        if (callbacks.length) {
+          nextTick(simpleBind(this, function() {
+            var callback;
+            for (var i = 0, ii = callbacks.length; i < ii; i++) {
+              callback = callbacks[i];
+              this.promise.$$value.then(callback[0], callback[1], callback[2]);
             }
-          };
+          }));
+        }
+      }
+    },
+    reject: function(reason) {
+      this.resolve(createInternalRejectedPromise(reason));
+    },
+    notify: function(progress) {
+      if (this.promise.$$pending) {
+        var callbacks = this.promise.$$pending;
 
-          var wrappedErrback = function(reason) {
-            try {
-              result.resolve((isFunction(errback) ? errback : defaultErrback)(reason));
-            } catch(e) {
-              result.reject(e);
-              exceptionHandler(e);
+        if (this.promise.$$pending.length) {
+          nextTick(function() {
+            var callback;
+            for (var i = 0, ii = callbacks.length; i < ii; i++) {
+              callback = callbacks[i];
+              callback[2](progress);
             }
-          };
-
-          var wrappedProgressback = function(progress) {
-            try {
-              result.notify((isFunction(progressback) ? progressback : defaultCallback)(progress));
-            } catch(e) {
-              exceptionHandler(e);
-            }
-          };
-
-          if (pending) {
-            pending.push([wrappedCallback, wrappedErrback, wrappedProgressback]);
-          } else {
-            value.then(wrappedCallback, wrappedErrback, wrappedProgressback);
-          }
-
-          return result.promise;
-        },
-
-        "catch": function(callback) {
-          return this.then(null, callback);
-        },
-
-        "finally": function(callback) {
-
-          function makePromise(value, resolved) {
-            var result = defer();
-            if (resolved) {
-              result.resolve(value);
-            } else {
-              result.reject(value);
-            }
-            return result.promise;
-          }
-
-          function handleCallback(value, isResolved) {
-            var callbackOutput = null;
-            try {
-              callbackOutput = (callback ||defaultCallback)();
-            } catch(e) {
-              return makePromise(e, false);
-            }
-            if (isPromiseLike(callbackOutput)) {
-              return callbackOutput.then(function() {
-                return makePromise(value, isResolved);
-              }, function(error) {
-                return makePromise(error, false);
-              });
-            } else {
-              return makePromise(value, isResolved);
-            }
-          }
-
-          return this.then(function(value) {
-            return handleCallback(value, true);
-          }, function(error) {
-            return handleCallback(error, false);
           });
         }
       }
-    };
-
-    return deferred;
+    }
   };
-
 
   var ref = function(value) {
     if (isPromiseLike(value)) return value;
     return {
       then: function(callback) {
-        var result = defer();
+        var result = new Deferred();
         nextTick(function() {
           result.resolve(callback(value));
         });
@@ -11796,15 +11845,43 @@ function qFactory(nextTick, exceptionHandler) {
    * @returns {Promise} Returns a promise that was already resolved as rejected with the `reason`.
    */
   var reject = function(reason) {
-    var result = defer();
+    var result = new Deferred();
     result.reject(reason);
     return result.promise;
+  };
+
+  var makePromise = function makePromise(value, resolved) {
+    var result = new Deferred();
+    if (resolved) {
+      result.resolve(value);
+    } else {
+      result.reject(value);
+    }
+    return result.promise;
+  };
+
+  var handleCallback = function handleCallback(value, isResolved, callback) {
+    var callbackOutput = null;
+    try {
+      callbackOutput = (callback ||defaultCallback)();
+    } catch(e) {
+      return makePromise(e, false);
+    }
+    if (isPromiseLike(callbackOutput)) {
+      return callbackOutput.then(function() {
+        return makePromise(value, isResolved);
+      }, function(error) {
+        return makePromise(error, false);
+      });
+    } else {
+      return makePromise(value, isResolved);
+    }
   };
 
   var createInternalRejectedPromise = function(reason) {
     return {
       then: function(callback, errback) {
-        var result = defer();
+        var result = new Deferred();
         nextTick(function() {
           try {
             result.resolve((isFunction(errback) ? errback : defaultErrback)(reason));
@@ -11833,7 +11910,7 @@ function qFactory(nextTick, exceptionHandler) {
    * @returns {Promise} Returns a promise of the passed value or promise
    */
   var when = function(value, callback, errback, progressback) {
-    var result = defer(),
+    var result = new Deferred(),
         done;
 
     var wrappedCallback = function(value) {
@@ -11907,7 +11984,7 @@ function qFactory(nextTick, exceptionHandler) {
    *   with the same rejection value.
    */
   function all(promises) {
-    var deferred = defer(),
+    var deferred = new Deferred(),
         counter = 0,
         results = isArray(promises) ? [] : {};
 
@@ -11941,7 +12018,7 @@ function qFactory(nextTick, exceptionHandler) {
       return new Q(resolver);
     }
 
-    var deferred = defer();
+    var deferred = new Deferred();
 
     function resolveFn(value) {
       deferred.resolve(value);
@@ -12244,7 +12321,6 @@ function $RootScopeProvider(){
        * can compare the `newVal` and `oldVal`. If these two values are identical (`===`) then the
        * listener was called due to initialization.
        *
-       * The example below contains an illustration of using a function as your $watch listener
        *
        *
        * # Example
@@ -12274,14 +12350,14 @@ function $RootScopeProvider(){
 
 
 
-           // Using a listener function
+           // Using a function as a watchExpression
            var food;
            scope.foodCounter = 0;
            expect(scope.foodCounter).toEqual(0);
            scope.$watch(
-             // This is the listener function
+             // This function returns the value being watched. It is called for each turn of the $digest loop
              function() { return food; },
-             // This is the change handler
+             // This is the change listener, called when the value returned from the above function changes
              function(newValue, oldValue) {
                if ( newValue !== oldValue ) {
                  // Only increment the counter if the value changed
@@ -15407,7 +15483,7 @@ var DATE_FORMATS_SPLIT = /((?:[^yMdHhmsaZEw']+)|(?:'(?:[^']|'')*')|(?:E+|y+|M+|d
  *   (e.g. `"h 'o''clock'"`).
  *
  * @param {(Date|number|string)} date Date to format either as Date object, milliseconds (string or
- *    number) or various ISO 8601 datetime string formats (e.g. yyyy-MM-ddTHH:mm:ss.SSSZ and its
+ *    number) or various ISO 8601 datetime string formats (e.g. yyyy-MM-ddTHH:mm:ss.sssZ and its
  *    shorter versions like yyyy-MM-ddTHH:mmZ, yyyy-MM-dd or yyyyMMddTHHmmssZ). If no timezone is
  *    specified in the string input, the time is considered to be in the local timezone.
  * @param {string=} format Formatting rules (see Description). If not specified,
@@ -15923,12 +15999,12 @@ var htmlAnchorDirective = valueFn({
  *
  * The wrong way to write it:
  * ```html
- * <a href="http://www.gravatar.com/avatar/{{hash}}"/>
+ * <a href="http://www.gravatar.com/avatar/{{hash}}">link1</a>
  * ```
  *
  * The correct way to write it:
  * ```html
- * <a ng-href="http://www.gravatar.com/avatar/{{hash}}"/>
+ * <a ng-href="http://www.gravatar.com/avatar/{{hash}}">link1</a>
  * ```
  *
  * @element A
@@ -16330,14 +16406,16 @@ forEach(['src', 'srcset', 'href'], function(attrName) {
   };
 });
 
-/* global -nullFormCtrl */
+/* global -nullFormCtrl, -SUBMITTED_CLASS */
 var nullFormCtrl = {
   $addControl: noop,
   $removeControl: noop,
   $setValidity: noop,
   $setDirty: noop,
-  $setPristine: noop
-};
+  $setPristine: noop,
+  $setSubmitted: noop
+},
+SUBMITTED_CLASS = 'ng-submitted';
 
 /**
  * @ngdoc type
@@ -16390,6 +16468,7 @@ function FormController(element, attrs, $scope, $animate) {
   form.$pristine = true;
   form.$valid = true;
   form.$invalid = false;
+  form.$submitted = false;
 
   parentForm.$addControl(form);
 
@@ -16558,16 +16637,28 @@ function FormController(element, attrs, $scope, $animate) {
    * saving or resetting it.
    */
   form.$setPristine = function () {
-    $animate.removeClass(element, DIRTY_CLASS);
-    $animate.addClass(element, PRISTINE_CLASS);
+    $animate.setClass(element, PRISTINE_CLASS, DIRTY_CLASS + ' ' + SUBMITTED_CLASS);
     form.$dirty = false;
     form.$pristine = true;
+    form.$submitted = false;
     forEach(controls, function(control) {
       control.$setPristine();
     });
   };
-}
 
+  /**
+   * @ngdoc method
+   * @name form.FormController#setSubmitted
+   *
+   * @description
+   * Sets the form to its submitted state.
+   */
+  form.$setSubmitted = function () {
+    $animate.addClass(element, SUBMITTED_CLASS);
+    form.$submitted = true;
+    parentForm.$setSubmitted();
+  };
+}
 
 /**
  * @ngdoc directive
@@ -16617,6 +16708,7 @@ function FormController(element, attrs, $scope, $animate) {
  *  - `ng-invalid` is set if the form is invalid.
  *  - `ng-pristine` is set if the form is pristine.
  *  - `ng-dirty` is set if the form is dirty.
+ *  - `ng-submitted` is set if the form was submitted.
  *
  * Keep in mind that ngAnimate can detect each of these classes when added and removed.
  *
@@ -16753,6 +16845,7 @@ var formDirectiveFactory = function(isNgForm) {
               var handleFormSubmission = function(event) {
                 scope.$apply(function() {
                   controller.$commitViewValue();
+                  controller.$setSubmitted();
                 });
 
                 event.preventDefault
@@ -16930,7 +17023,7 @@ var inputType = {
             }]);
        </script>
        <form name="myForm" ng-controller="DateController as dateCtrl">
-          Pick a date between in 2013:
+          Pick a date in 2013:
           <input type="date" id="exampleInput" name="input" ng-model="value"
               placeholder="yyyy-MM-dd" min="2013-01-01" max="2013-12-31" required />
           <span class="error" ng-show="myForm.input.$error.required">
@@ -18980,6 +19073,8 @@ var ngModelDirective = function() {
         }
 
         element.on('blur', function(ev) {
+          if (modelCtrl.$touched) return;
+
           scope.$apply(function() {
             modelCtrl.$setTouched();
           });
@@ -18999,7 +19094,15 @@ var ngModelDirective = function() {
  * The expression is evaluated immediately, unlike the JavaScript onchange event
  * which only triggers at the end of a change (usually, when the user leaves the
  * form element or presses the return key).
- * The expression is not evaluated when the value change is coming from the model.
+ *
+ * The `ngChange` expression is only evaluated when a change in the input value causes
+ * a new value to be committed to the model.
+ *
+ * It will not be evaluated:
+ * * if the value returned from the `$parsers` transformation pipeline has not changed
+ * * if the input has continued to be invalid since the model will stay `null`
+ * * if the model is changed programmatically and not by a change to the input value
+ *
  *
  * Note, this directive requires `ngModel` to be present.
  *
@@ -20156,10 +20259,16 @@ var ngCloakDirective = ngDirective({
  *
  * @element ANY
  * @scope
- * @param {expression} ngController Name of a globally accessible constructor function or an
- *     {@link guide/expression expression} that on the current scope evaluates to a
- *     constructor function. The controller instance can be published into a scope property
- *     by specifying `as propertyName`.
+ * @param {expression} ngController Name of a constructor function registered with the current
+ * {@link ng.$controllerProvider $controllerProvider} or an {@link guide/expression expression}
+ * that on the current scope evaluates to a constructor function.
+ *
+ * The controller instance can be published into a scope property by specifying
+ * `ng-controller="as propertyName"`.
+ *
+ * If the current `$controllerProvider` is configured to use globals (via
+ * {@link ng.$controllerProvider#allowGlobals `$controllerProvider.allowGlobals()` }), this may
+ * also be the name of a globally accessible constructor function (not recommended).
  *
  * @example
  * Here is a simple form for editing user contact information. Adding, removing, clearing, and
@@ -20723,6 +20832,13 @@ forEach(
  * Additionally it prevents the default action (which for form means sending the request to the
  * server and reloading the current page), but only if the form does not contain `action`,
  * `data-action`, or `x-action` attributes.
+ *
+ * <div class="alert alert-warning">
+ * **Warning:** Be careful not to cause "double-submission" by using both the `ngClick` and
+ * `ngSubmit` handlers together. See the
+ * {@link form#submitting-a-form-and-preventing-the-default-action `form` directive documentation}
+ * for a detailed discussion of when `ngSubmit` may be triggered.
+ * </div>
  *
  * @element form
  * @priority 0
@@ -23091,21 +23207,37 @@ var selectDirective = ['$compile', '$parse', function($compile,   $parse) {
                   value = valueFn(scope, locals);
                 }
               }
-              // Update the null option's selected property here so $render cleans it up correctly
-              if (optionGroupsCache[0].length > 1) {
-                if (optionGroupsCache[0][1].id !== key) {
-                  optionGroupsCache[0][1].selected = false;
-                }
-              }
             }
             ctrl.$setViewValue(value);
+            render();
           });
         });
 
         ctrl.$render = render;
 
-        // TODO(vojta): can't we optimize this ?
-        scope.$watch(render);
+        scope.$watchCollection(valuesFn, render);
+        if ( multiple ) {
+          scope.$watchCollection(function() { return ctrl.$modelValue; }, render);
+        }
+
+        function getSelectedSet() {
+          var selectedSet = false;
+          if (multiple) {
+            var modelValue = ctrl.$modelValue;
+            if (trackFn && isArray(modelValue)) {
+              selectedSet = new HashMap([]);
+              var locals = {};
+              for (var trackIndex = 0; trackIndex < modelValue.length; trackIndex++) {
+                locals[valueName] = modelValue[trackIndex];
+                selectedSet.put(trackFn(scope, locals), modelValue[trackIndex]);
+              }
+            } else {
+              selectedSet = new HashMap(modelValue);
+            }
+          }
+          return selectedSet;
+        }
+
 
         function render() {
               // Temporary location for the option groups before we render them
@@ -23123,22 +23255,11 @@ var selectDirective = ['$compile', '$parse', function($compile,   $parse) {
               groupIndex, index,
               locals = {},
               selected,
-              selectedSet = false, // nothing is selected yet
+              selectedSet = getSelectedSet(),
               lastElement,
               element,
               label;
 
-          if (multiple) {
-            if (trackFn && isArray(modelValue)) {
-              selectedSet = new HashMap([]);
-              for (var trackIndex = 0; trackIndex < modelValue.length; trackIndex++) {
-                locals[valueName] = modelValue[trackIndex];
-                selectedSet.put(trackFn(scope, locals), modelValue[trackIndex]);
-              }
-            } else {
-              selectedSet = new HashMap(modelValue);
-            }
-          }
 
           // We now build up the list of options we need (we merge later)
           for (index = 0; length = keys.length, index < length; index++) {
@@ -23234,7 +23355,7 @@ var selectDirective = ['$compile', '$parse', function($compile,   $parse) {
                   lastElement.val(existingOption.id = option.id);
                 }
                 // lastElement.prop('selected') provided by jQuery has side-effects
-                if (existingOption.selected !== option.selected) {
+                if (lastElement[0].selected !== option.selected) {
                   lastElement.prop('selected', (existingOption.selected = option.selected));
                   if (msie) {
                     // See #7692
@@ -23257,6 +23378,7 @@ var selectDirective = ['$compile', '$parse', function($compile,   $parse) {
                   (element = optionTemplate.clone())
                       .val(option.id)
                       .prop('selected', option.selected)
+                      .attr('selected', option.selected)
                       .text(option.label);
                 }
 
