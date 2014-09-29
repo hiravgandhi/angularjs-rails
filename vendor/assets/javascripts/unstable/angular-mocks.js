@@ -1,5 +1,5 @@
 /**
- * @license AngularJS v1.3.0-beta.18
+ * @license AngularJS v1.3.0-rc.3
  * (c) 2010-2014 Google, Inc. http://angularjs.org
  * License: MIT
  */
@@ -63,6 +63,8 @@ angular.mock.$Browser = function() {
     return listener;
   };
 
+  self.$$checkUrlChange = angular.noop;
+
   self.cookieHash = {};
   self.lastCookieHash = {};
   self.deferredFns = [];
@@ -125,7 +127,7 @@ angular.mock.$Browser = function() {
     }
   };
 
-  self.$$baseHref = '';
+  self.$$baseHref = '/';
   self.baseHref = function() {
     return this.$$baseHref;
   };
@@ -774,13 +776,21 @@ angular.mock.animate = angular.module('ngAnimateMock', ['ng'])
       };
     });
 
-    $provide.decorator('$animate', ['$delegate', '$$asyncCallback',
-      function($delegate, $$asyncCallback) {
+    $provide.decorator('$animate', ['$delegate', '$$asyncCallback', '$timeout', '$browser',
+                            function($delegate,   $$asyncCallback,   $timeout,   $browser) {
       var animate = {
         queue : [],
+        cancel : $delegate.cancel,
         enabled : $delegate.enabled,
-        triggerCallbacks : function() {
+        triggerCallbackEvents : function() {
           $$asyncCallback.flush();
+        },
+        triggerCallbackPromise : function() {
+          $timeout.flush(0);
+        },
+        triggerCallbacks : function() {
+          this.triggerCallbackEvents();
+          this.triggerCallbackPromise();
         },
         triggerReflow : function() {
           angular.forEach(reflowQueue, function(fn) {
@@ -1487,11 +1497,11 @@ function createHttpBackendMock($rootScope, $delegate, $browser) {
    *   all pending requests will be flushed. If there are no pending requests when the flush method
    *   is called an exception is thrown (as this typically a sign of programming error).
    */
-  $httpBackend.flush = function(count) {
-    $rootScope.$digest();
+  $httpBackend.flush = function(count, digest) {
+    if (digest !== false) $rootScope.$digest();
     if (!responses.length) throw new Error('No pending request to flush !');
 
-    if (angular.isDefined(count)) {
+    if (angular.isDefined(count) && count !== null) {
       while (count--) {
         if (!responses.length) throw new Error('No more pending request to flush !');
         responses.shift()();
@@ -1501,7 +1511,7 @@ function createHttpBackendMock($rootScope, $delegate, $browser) {
         responses.shift()();
       }
     }
-    $httpBackend.verifyNoOutstandingExpectation();
+    $httpBackend.verifyNoOutstandingExpectation(digest);
   };
 
 
@@ -1519,8 +1529,8 @@ function createHttpBackendMock($rootScope, $delegate, $browser) {
    *   afterEach($httpBackend.verifyNoOutstandingExpectation);
    * ```
    */
-  $httpBackend.verifyNoOutstandingExpectation = function() {
-    $rootScope.$digest();
+  $httpBackend.verifyNoOutstandingExpectation = function(digest) {
+    if (digest !== false) $rootScope.$digest();
     if (expectations.length) {
       throw new Error('Unsatisfied requests: ' + expectations.join(', '));
     }
@@ -2008,28 +2018,6 @@ angular.mock.e2e.$httpBackendDecorator =
   ['$rootScope', '$delegate', '$browser', createHttpBackendMock];
 
 
-angular.mock.clearDataCache = function() {
-  // jQuery 2.x doesn't expose data attached to elements. We could use jQuery.cleanData
-  // to clean up after elements but we'd first need to know which elements to clean up after.
-  // Skip it then.
-  if (window.jQuery) {
-    return;
-  }
-
-  var key,
-      cache = angular.element.cache;
-
-  for(key in cache) {
-    if (Object.prototype.hasOwnProperty.call(cache,key)) {
-      var handle = cache[key].handle;
-
-      handle && angular.element(handle.elem).off();
-      delete cache[key];
-    }
-  }
-};
-
-
 if(window.jasmine || window.mocha) {
 
   var currentSpec = null,
@@ -2060,8 +2048,6 @@ if(window.jasmine || window.mocha) {
       injector.get('$browser').pollFns.length = 0;
     }
 
-    angular.mock.clearDataCache();
-
     // clean up jquery's fragment cache
     angular.forEach(angular.element.fragments, function(val, key) {
       delete angular.element.fragments[key];
@@ -2081,6 +2067,7 @@ if(window.jasmine || window.mocha) {
    * @description
    *
    * *NOTE*: This function is also published on window for easy access.<br>
+   * *NOTE*: This function is declared ONLY WHEN running tests with jasmine or mocha
    *
    * This function registers a module configuration code. It collects the configuration information
    * which will be used when the injector is created by {@link angular.mock.inject inject}.
@@ -2123,6 +2110,7 @@ if(window.jasmine || window.mocha) {
    * @description
    *
    * *NOTE*: This function is also published on window for easy access.<br>
+   * *NOTE*: This function is declared ONLY WHEN running tests with jasmine or mocha
    *
    * The inject function wraps a function into an injectable function. The inject() creates new
    * instance of {@link auto.$injector $injector} per test, which is then used for
