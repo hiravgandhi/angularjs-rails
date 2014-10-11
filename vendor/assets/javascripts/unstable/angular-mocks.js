@@ -1,5 +1,5 @@
 /**
- * @license AngularJS v1.3.0-rc.3
+ * @license AngularJS v1.3.0-rc.5
  * (c) 2010-2014 Google, Inc. http://angularjs.org
  * License: MIT
  */
@@ -53,9 +53,10 @@ angular.mock.$Browser = function() {
   self.onUrlChange = function(listener) {
     self.pollFns.push(
       function() {
-        if (self.$$lastUrl != self.$$url) {
+        if (self.$$lastUrl !== self.$$url || self.$$state !== self.$$lastState) {
           self.$$lastUrl = self.$$url;
-          listener(self.$$url);
+          self.$$lastState = self.$$state;
+          listener(self.$$url, self.$$state);
         }
       }
     );
@@ -151,13 +152,22 @@ angular.mock.$Browser.prototype = {
     return pollFn;
   },
 
-  url: function(url, replace) {
+  url: function(url, replace, state) {
+    if (angular.isUndefined(state)) {
+      state = null;
+    }
     if (url) {
       this.$$url = url;
+      // Native pushState serializes & copies the object; simulate it.
+      this.$$state = angular.copy(state);
       return this;
     }
 
     return this.$$url;
+  },
+
+  state: function() {
+    return this.$$state;
   },
 
   cookies:  function(name, value) {
@@ -806,6 +816,7 @@ angular.mock.animate = angular.module('ngAnimateMock', ['ng'])
           animate.queue.push({
             event : method,
             element : arguments[0],
+            options : arguments[arguments.length-1],
             args : arguments
           });
           return $delegate[method].apply($delegate, arguments);
