@@ -17,7 +17,7 @@ module AngularJS::Rails
     end
 
     def update_js!
-      if latest_version > current_gem_version
+      if latest_version >= current_gem_version
         clean
         download_files
         update_version_to(latest_version)

@@ -1,5 +1,5 @@
 /**
- * @license AngularJS v1.3.0-rc.5
+ * @license AngularJS v1.3.0
  * (c) 2010-2014 Google, Inc. http://angularjs.org
  * License: MIT
  */
@@ -118,7 +118,7 @@ function shallowClearAndCopy(src, dst) {
  *
  * @param {Object.<Object>=} actions Hash with declaration of custom action that should extend
  *   the default set of resource actions. The declaration should be created in the format of {@link
- *   ng.$http#usage_parameters $http.config}:
+ *   ng.$http#usage $http.config}:
  *
  *       {action1: {method:?, params:?, isArray:?, headers:?, ...},
  *        action2: {method:?, params:?, isArray:?, headers:?, ...},
