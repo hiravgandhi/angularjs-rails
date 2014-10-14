@@ -7,8 +7,8 @@ module AngularJS::Rails
     end
 
     def own_version(version)
-      # Currently unstable versions have even minor
-      version.minor.even?
+      # Currently stable versions have odd minor
+      version.minor.odd?
     end
   end
 end
