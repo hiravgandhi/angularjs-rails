@@ -1,5 +1,5 @@
 /**
- * @license AngularJS v1.3.0
+ * @license AngularJS v1.3.1
  * (c) 2010-2014 Google, Inc. http://angularjs.org
  * License: MIT
  */
@@ -38,12 +38,12 @@
 
 function minErr(module, ErrorConstructor) {
   ErrorConstructor = ErrorConstructor || Error;
-  return function () {
+  return function() {
     var code = arguments[0],
       prefix = '[' + (module ? module + ':' : '') + code + '] ',
       template = arguments[1],
       templateArgs = arguments,
-      stringify = function (obj) {
+      stringify = function(obj) {
         if (typeof obj === 'function') {
           return obj.toString().replace(/ \{[\s\S]*$/, '');
         } else if (typeof obj === 'undefined') {
@@ -55,7 +55,7 @@ function minErr(module, ErrorConstructor) {
       },
       message, i;
 
-    message = prefix + template.replace(/\{\d+\}/g, function (match) {
+    message = prefix + template.replace(/\{\d+\}/g, function(match) {
       var index = +match.slice(1, -1), arg;
 
       if (index + 2 < templateArgs.length) {
@@ -72,7 +72,7 @@ function minErr(module, ErrorConstructor) {
       return match;
     });
 
-    message = message + '\nhttp://errors.angularjs.org/1.3.0/' +
+    message = message + '\nhttp://errors.angularjs.org/1.3.1/' +
       (module ? module + '/' : '') + code;
     for (i = 2; i < arguments.length; i++) {
       message = message + (i == 2 ? '?' : '&') + 'p' + (i-2) + '=' +
@@ -378,7 +378,7 @@ function setupModuleLoader(window) {
           config(configFn);
         }
 
-        return  moduleInstance;
+        return moduleInstance;
 
         /**
          * @param {string} provider
