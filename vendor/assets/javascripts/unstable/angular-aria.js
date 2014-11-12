@@ -1,5 +1,5 @@
 /**
- * @license AngularJS v1.3.1
+ * @license AngularJS v1.3.2
  * (c) 2010-2014 Google, Inc. http://angularjs.org
  * License: MIT
  */
@@ -243,6 +243,17 @@ ngAriaModule.directive('ngShow', ['$aria', function($aria) {
 .directive('ngDisabled', ['$aria', function($aria) {
   return $aria.$$watchExpr('ngDisabled', 'aria-disabled');
 }])
+.directive('ngMessages', function() {
+  return {
+    restrict: 'A',
+    require: '?ngMessages',
+    link: function(scope, elem, attr, ngMessages) {
+      if (!elem.attr('aria-live')) {
+        elem.attr('aria-live', 'assertive');
+      }
+    }
+  };
+})
 .directive('ngClick', ngAriaTabindex)
 .directive('ngDblclick', ngAriaTabindex);
 
