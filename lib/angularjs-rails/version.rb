@@ -1,6 +1,6 @@
 module AngularJS
   module Rails
-    VERSION = "1.3.36"
-    UNSTABLE_VERSION = "1.3.36"
+    VERSION = "1.3.8"
+    UNSTABLE_VERSION = "1.3.8"
   end
 end
