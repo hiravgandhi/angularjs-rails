@@ -6,9 +6,9 @@ module AngularJS::Rails
       Versionomy.parse(AngularJS::Rails::VERSION).convert(:rubygems)
     end
 
+      # Currently stable versions have even minor
     def own_version(version)
-      # Currently stable versions have odd minor
-      version.minor.odd?
+      version.release_type == :final
     end
   end
 end

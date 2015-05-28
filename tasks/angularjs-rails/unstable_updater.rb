@@ -11,8 +11,8 @@ module AngularJS::Rails
     end
 
     def own_version(version)
-      # Currently unstable versions have odd minor
-      version.minor.odd?
+      # Currently unstable versions have some minor
+      version.release_type != :final
     end
 
     def version_constant_name
