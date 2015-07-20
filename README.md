@@ -19,12 +19,7 @@ If you desire to require (optional) Angular files, you may include them as well 
 
 To use the 'unstable' branch, add the following directive to your JavaScript manifest file (application.js):
 
-    //= require unstable/angular
-
-And similarly, for optional Angular assets:
-
-    //= require unstable/angular-animate
-    //= require unstable/angular-resource
+    //= require unstable/angular2
 
 ## Versioning
 
