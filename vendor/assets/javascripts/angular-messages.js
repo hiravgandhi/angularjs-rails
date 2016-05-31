@@ -1,5 +1,5 @@
 /**
- * @license AngularJS v1.5.5
+ * @license AngularJS v1.5.6
  * (c) 2010-2016 Google, Inc. http://angularjs.org
  * License: MIT
  */
@@ -555,6 +555,8 @@ angular.module('ngMessages', [])
        link: function($scope, element, attrs) {
          var src = attrs.ngMessagesInclude || attrs.src;
          $templateRequest(src).then(function(html) {
+           if ($scope.$$destroyed) return;
+
            $compile(html)($scope, function(contents) {
              element.after(contents);
 
