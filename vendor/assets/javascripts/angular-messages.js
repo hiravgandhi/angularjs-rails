@@ -1,5 +1,5 @@
 /**
- * @license AngularJS v1.5.8
+ * @license AngularJS v1.6.0
  * (c) 2010-2016 Google, Inc. http://angularjs.org
  * License: MIT
  */
@@ -69,7 +69,7 @@ var jqLite;
  * By default, `ngMessages` will only display one message for a particular key/value collection at any time. If more
  * than one message (or error) key is currently true, then which message is shown is determined by the order of messages
  * in the HTML template code (messages declared first are prioritised). This mechanism means the developer does not have
- * to prioritise messages using custom JavaScript code.
+ * to prioritize messages using custom JavaScript code.
  *
  * Given the following error object for our example (which informs us that the field `myField` currently has both the
  * `required` and `email` errors):
@@ -352,7 +352,7 @@ angular.module('ngMessages', [], function initAngularHelpers() {
     return {
       require: 'ngMessages',
       restrict: 'AE',
-      controller: ['$element', '$scope', '$attrs', function($element, $scope, $attrs) {
+      controller: ['$element', '$scope', '$attrs', function NgMessagesCtrl($element, $scope, $attrs) {
         var ctrl = this;
         var latestKey = 0;
         var nextAttachId = 0;
@@ -412,9 +412,11 @@ angular.module('ngMessages', [], function initAngularHelpers() {
             messageCtrl.detach();
           });
 
-          unmatchedMessages.length !== totalMessages
-              ? $animate.setClass($element, ACTIVE_CLASS, INACTIVE_CLASS)
-              : $animate.setClass($element, INACTIVE_CLASS, ACTIVE_CLASS);
+          if (unmatchedMessages.length !== totalMessages) {
+            $animate.setClass($element, ACTIVE_CLASS, INACTIVE_CLASS);
+          } else {
+            $animate.setClass($element, INACTIVE_CLASS, ACTIVE_CLASS);
+          }
         };
 
         $scope.$watchCollection($attrs.ngMessages || $attrs['for'], ctrl.render);
@@ -430,8 +432,8 @@ angular.module('ngMessages', [], function initAngularHelpers() {
           if (!renderLater) {
             renderLater = true;
             $scope.$evalAsync(function() {
-              if (renderLater) {
-                cachedCollection && ctrl.render(cachedCollection);
+              if (renderLater && cachedCollection) {
+                ctrl.render(cachedCollection);
               }
             });
           }

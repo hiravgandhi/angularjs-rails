@@ -1,12 +1,11 @@
 /**
- * @license AngularJS v1.5.8
+ * @license AngularJS v1.6.0
  * (c) 2010-2016 Google, Inc. http://angularjs.org
  * License: MIT
  */
 (function(window, angular) {'use strict';
 
-/* global ngTouchClickDirectiveFactory: false,
- */
+/* global ngTouchClickDirectiveFactory: false */
 
 /**
  * @ngdoc module
@@ -66,6 +65,7 @@ function $TouchProvider($provide, $compileProvider) {
    */
   var ngClickOverrideEnabled = false;
   var ngClickDirectiveAdded = false;
+  // eslint-disable-next-line no-invalid-this
   this.ngClickOverrideEnabled = function(enabled) {
     if (angular.isDefined(enabled)) {
 
@@ -113,6 +113,7 @@ function $TouchProvider($provide, $compileProvider) {
   * Provides the {@link ngTouch.$touch#ngClickOverrideEnabled `ngClickOverrideEnabled`} method.
   *
   */
+  // eslint-disable-next-line no-invalid-this
   this.$get = function() {
     return {
       /**
@@ -249,13 +250,17 @@ ngTouch.factory('$swipe', [function() {
         totalX = 0;
         totalY = 0;
         lastPos = startCoords;
-        eventHandlers['start'] && eventHandlers['start'](startCoords, event);
+        if (eventHandlers['start']) {
+          eventHandlers['start'](startCoords, event);
+        }
       });
       var events = getEvents(pointerTypes, 'cancel');
       if (events) {
         element.on(events, function(event) {
           active = false;
-          eventHandlers['cancel'] && eventHandlers['cancel'](event);
+          if (eventHandlers['cancel']) {
+            eventHandlers['cancel'](event);
+          }
         });
       }
 
@@ -284,19 +289,25 @@ ngTouch.factory('$swipe', [function() {
         if (totalY > totalX) {
           // Allow native scrolling to take over.
           active = false;
-          eventHandlers['cancel'] && eventHandlers['cancel'](event);
+          if (eventHandlers['cancel']) {
+            eventHandlers['cancel'](event);
+          }
           return;
         } else {
           // Prevent the browser from scrolling.
           event.preventDefault();
-          eventHandlers['move'] && eventHandlers['move'](coords, event);
+          if (eventHandlers['move']) {
+            eventHandlers['move'](coords, event);
+          }
         }
       });
 
       element.on(getEvents(pointerTypes, 'end'), function(event) {
         if (!active) return;
         active = false;
-        eventHandlers['end'] && eventHandlers['end'](getCoordinates(event), event);
+        if (eventHandlers['end']) {
+          eventHandlers['end'](getCoordinates(event), event);
+        }
       });
     }
   };
@@ -310,16 +321,15 @@ ngTouch.factory('$swipe', [function() {
  * @ngdoc directive
  * @name ngClick
  * @deprecated
- *
- * @description
- * <div class="alert alert-danger">
- * **DEPRECATION NOTICE**: Beginning with Angular 1.5, this directive is deprecated and by default **disabled**.
+ * sinceVersion="v1.5.0"
+ * This directive is deprecated and **disabled** by default.
  * The directive will receive no further support and might be removed from future releases.
  * If you need the directive, you can enable it with the {@link ngTouch.$touchProvider $touchProvider#ngClickOverrideEnabled}
  * function. We also recommend that you migrate to [FastClick](https://github.com/ftlabs/fastclick).
  * To learn more about the 300ms delay, this [Telerik article](http://developer.telerik.com/featured/300-ms-click-delay-ios-8/)
  * gives a good overview.
- * </div>
+ *
+ * @description
  * A more powerful replacement for the default ngClick designed to be used on touchscreen
  * devices. Most mobile browsers wait about 300ms after a tap-and-release before sending
  * the click event. This version handles them immediately, and then prevents the
@@ -338,7 +348,7 @@ ngTouch.factory('$swipe', [function() {
  * upon tap. (Event object is available as `$event`)
  *
  * @example
-    <example module="ngClickExample" deps="angular-touch.js">
+    <example module="ngClickExample" deps="angular-touch.js" name="ng-touch-ng-click">
       <file name="index.html">
         <button ng-click="count = count + 1" ng-init="count=0">
           Increment
@@ -463,7 +473,9 @@ var ngTouchClickDirectiveFactory = ['$parse', '$timeout', '$rootElement',
     event.preventDefault();
 
     // Blur focused form elements
-    event.target && event.target.blur && event.target.blur();
+    if (event.target && event.target.blur) {
+      event.target.blur();
+    }
   }
 
 
@@ -478,7 +490,7 @@ var ngTouchClickDirectiveFactory = ['$parse', '$timeout', '$rootElement',
     $timeout(function() {
       // Remove the allowable region.
       for (var i = 0; i < touchCoordinates.length; i += 2) {
-        if (touchCoordinates[i] == x && touchCoordinates[i + 1] == y) {
+        if (touchCoordinates[i] === x && touchCoordinates[i + 1] === y) {
           touchCoordinates.splice(i, i + 2);
           return;
         }
@@ -518,7 +530,7 @@ var ngTouchClickDirectiveFactory = ['$parse', '$timeout', '$rootElement',
       tapping = true;
       tapElement = event.target ? event.target : event.srcElement; // IE uses srcElement.
       // Hack for Safari, which can target text nodes instead of containers.
-      if (tapElement.nodeType == 3) {
+      if (tapElement.nodeType === 3) {
         tapElement = tapElement.parentNode;
       }
 
@@ -619,7 +631,7 @@ var ngTouchClickDirectiveFactory = ['$parse', '$timeout', '$rootElement',
  * upon left swipe. (Event object is available as `$event`)
  *
  * @example
-    <example module="ngSwipeLeftExample" deps="angular-touch.js">
+    <example module="ngSwipeLeftExample" deps="angular-touch.js" name="ng-swipe-left">
       <file name="index.html">
         <div ng-show="!showActions" ng-swipe-left="showActions = true">
           Some list content, like an email in the inbox
@@ -652,7 +664,7 @@ var ngTouchClickDirectiveFactory = ['$parse', '$timeout', '$rootElement',
  * upon right swipe. (Event object is available as `$event`)
  *
  * @example
-    <example module="ngSwipeRightExample" deps="angular-touch.js">
+    <example module="ngSwipeRightExample" deps="angular-touch.js" name="ng-swipe-right">
       <file name="index.html">
         <div ng-show="!showActions" ng-swipe-left="showActions = true">
           Some list content, like an email in the inbox
