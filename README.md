@@ -4,7 +4,7 @@ angularjs-rails wraps the [Angular.js](http://angularjs.org) library for use in 
 
 If you find this gem useful, please consider donating - your contributions will help me keep this gem updated. 
 
-[![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](bhangragandhi@gmail.com)
+[![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=NCT7TZEFY2T9Y)
 
 
 ## Usage
