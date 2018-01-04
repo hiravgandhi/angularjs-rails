@@ -2,6 +2,11 @@
 
 angularjs-rails wraps the [Angular.js](http://angularjs.org) library for use in Rails 3.1 and above. Assets will minify automatically during production.
 
+If you find this gem useful, please consider donating - your contributions will help me keep this gem updated. 
+
+[![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](bhangragandhi@gmail.com)
+
+
 ## Usage
 
 Add the following to your Gemfile:
@@ -29,4 +34,4 @@ The major, minor, and patch version numbers will always represent the Angular.js
 
 ## IMPORTANT: Requesting upgrades for new Angular.js versions
 
-Thanks to Nick Clark, we have an auto-upgrader that will upgrade the package to the latest version. To request that the latest version of Angular.JS be pushed as a gem to RubyGems, please create a new issue instead of pull requests.
+To request that the latest version of Angular.JS be pushed as a gem to RubyGems, please create a new issue instead of pull requests.
