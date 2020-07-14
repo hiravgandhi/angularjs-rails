@@ -1,6 +1,6 @@
 /**
- * @license AngularJS v1.6.2
- * (c) 2010-2017 Google, Inc. http://angularjs.org
+ * @license AngularJS v1.8.0
+ * (c) 2010-2020 Google, Inc. http://angularjs.org
  * License: MIT
  */
 (function(window, angular) {'use strict';
@@ -39,7 +39,7 @@ function parseTextLiteral(text) {
   parsedFn['$$watchDelegate'] = function watchDelegate(scope, listener, objectEquality) {
     var unwatch = scope['$watch'](noop,
         function textLiteralWatcher() {
-          if (isFunction(listener)) { listener(text, text, scope); }
+          listener(text, text, scope);
           unwatch();
         },
         objectEquality);
@@ -63,7 +63,7 @@ function subtractOffset(expressionFn, offset) {
   parsedFn['$$watchDelegate'] = function watchDelegate(scope, listener, objectEquality) {
     unwatch = scope['$watch'](expressionFn,
         function pluralExpressionWatchListener(newValue, oldValue) {
-          if (isFunction(listener)) { listener(minusOffset(newValue), minusOffset(oldValue), scope); }
+          listener(minusOffset(newValue), minusOffset(oldValue), scope);
         },
         objectEquality);
     return unwatch;
@@ -137,9 +137,7 @@ MessageSelectorWatchers.prototype.expressionFnListener = function expressionFnLi
 };
 
 MessageSelectorWatchers.prototype.messageFnListener = function messageFnListener(newMessage, oldMessage) {
-  if (isFunction(this.listener)) {
-    this.listener.call(null, newMessage, newMessage === oldMessage ? newMessage : this.lastMessage, this.scope);
-  }
+  this.listener.call(null, newMessage, newMessage === oldMessage ? newMessage : this.lastMessage, this.scope);
   this.lastMessage = newMessage;
 };
 
@@ -313,9 +311,7 @@ function InterpolationPartsWatcher(interpolationParts, scope, listener, objectEq
 
 InterpolationPartsWatcher.prototype.watchListener = function watchListener(newExpressionValues, oldExpressionValues) {
   var result = this.interpolationParts.getResult(newExpressionValues);
-  if (isFunction(this.listener)) {
-    this.listener.call(null, result, newExpressionValues === oldExpressionValues ? result : this.previousResult, this.scope);
-  }
+  this.listener.call(null, result, newExpressionValues === oldExpressionValues ? result : this.previousResult, this.scope);
   this.previousResult = result;
 };
 
@@ -729,7 +725,7 @@ MessageFormatParser.prototype.ruleEndMustache = function ruleEndMustache() {
     // day), then the result *has* to be a string and those rules would have already set
     // this.parsedFn.  If there was no MessageFormat extension, then there is no requirement to
     // stringify the result and parsedFn isn't set.  We set it here.  While we could have set it
-    // unconditionally when exiting the Angular expression, I intend for us to not just replace
+    // unconditionally when exiting the AngularJS expression, I intend for us to not just replace
     // $interpolate, but also to replace $parse in a future version (so ng-bind can work), and in
     // such a case we do not want to unnecessarily stringify something if it's not going to be used
     // in a string context.
@@ -773,7 +769,7 @@ MessageFormatParser.prototype.ruleInAngularExpression = function ruleInAngularEx
   var position;
   if (match == null) {
     if (this.angularOperatorStack.length === 0) {
-      // This is the end of the Angular expression so this is actually a
+      // This is the end of the AngularJS expression so this is actually a
       // success.  Note that when inside an interpolation, this means we even
       // consumed the closing interpolation symbols if they were curlies.  This
       // is NOT an error at this point but will become an error further up the
@@ -789,7 +785,7 @@ MessageFormatParser.prototype.ruleInAngularExpression = function ruleInAngularEx
     }
     var innermostOperator = this.angularOperatorStack[0];
     throw $interpolateMinErr('badexpr',
-        'Unexpected end of Angular expression.  Expecting operator “{0}” at the end of the text “{1}”',
+        'Unexpected end of AngularJS expression.  Expecting operator “{0}” at the end of the text “{1}”',
         this.getEndOperator(innermostOperator), this.text);
   }
   var operator = match[0];
@@ -864,7 +860,7 @@ MessageFormatParser.prototype.ruleInAngularExpression = function ruleInAngularEx
  *
  * ## What is  ngMessageFormat?
  *
- * The ngMessageFormat module extends the Angular {@link ng.$interpolate `$interpolate`} service
+ * The ngMessageFormat module extends the AngularJS {@link ng.$interpolate `$interpolate`} service
  * with a syntax for handling pluralization and gender specific messages, which is based on the
  * [ICU MessageFormat syntax][ICU].
  *
@@ -1059,9 +1055,10 @@ var noop;
 var toJson;
 var $$stringify;
 
-var module = window['angular']['module']('ngMessageFormat', ['ng']);
-module['factory']('$$messageFormat', $$MessageFormatFactory);
-module['config'](['$provide', function($provide) {
+var ngModule = window['angular']['module']('ngMessageFormat', ['ng']);
+ngModule['info']({ 'angularVersion': '1.8.0' });
+ngModule['factory']('$$messageFormat', $$MessageFormatFactory);
+ngModule['config'](['$provide', function($provide) {
   $interpolateMinErr = window['angular']['$interpolateMinErr'];
   isFunction = window['angular']['isFunction'];
   noop = window['angular']['noop'];
